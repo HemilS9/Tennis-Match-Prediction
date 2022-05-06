@@ -1,4 +1,3 @@
-#include <string>
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -17,6 +16,83 @@ class PlayerError {};
 class Prediction {
     private:
     string surface;
+    const int max_update = 300;
+
+    int find_num_sets(const string &score) {
+        int num = 0;
+        for (auto c : score) {
+            if (c == '-') {
+                ++num;
+            }
+        }
+        return num;
+    }
+
+    double equal_updates(const Match &m, const Player &winner, const Player &loser) {
+        // Score, Rank_Diff, Time
+        double score_update = 0.25*max_update, rank_diff_update = 0.35*max_update, 
+                            time_update = 0.1*max_update;
+        int num_sets = find_num_sets(m.score);
+        int minutes = m.time;
+
+        // update score and time according to Bo5
+        if (m.tourney_level == 'G') {
+            if (num_sets == 5) 
+                score_update *= 0.25;
+            else if (num_sets == 4) 
+                score_update *= 0.6;
+            
+            // Lower cutoff: 90 mins and Upper cutoff: 300 mins
+            double change = (0.1*max_update) / 210;
+            while (minutes > 90) {
+                --minutes;
+                time_update -= change;
+            }
+        }
+        // update score and time according to Bo3
+        else {
+            if (num_sets == 3) 
+                score_update /= 2;
+
+            // Lower cutoff: 60 mins and Upper cutoff: 200 mins
+            double change = (0.1*max_update) / 140;
+            while (minutes > 60) {
+                --minutes;
+                time_update -= change;
+            }
+        }
+        // Update rank_diff. The bigger the upset, the larger the value
+        // 30 ranking points is the cutoff for biggest upset
+        int upset = winner.ranking - loser.ranking;
+        if (upset > 0 && upset < 30)
+            rank_diff_update -= (upset * 0.1 * max_update) / 30;
+        else if (upset < 0 && upset >= -5)  
+            rank_diff_update *= 0.25;
+        else if (upset < -5)
+            rank_diff_update = 0;
+
+        return score_update + time_update + rank_diff_update;
+    }
+
+    // Winner_name (%) ---------|------ Loser_name (%)
+    // 20 dashes in total, so round to nearest 5%
+    void print_visual(const string &w_name, const string &l_name, double w_elo, double l_elo) {
+        double total = w_elo + l_elo;
+        double w_perc = (w_elo / total) * 100;
+        double l_perc = (l_elo / total) * 100;
+        cout << w_name << " (" << w_perc << "%) ";
+        while (w_perc > 0) {
+            cout << "-";
+            w_perc -= 5;
+        }
+        cout << "|";
+        while (l_perc > 0) {
+            cout << "-";
+            l_perc -= 5;
+        }
+        cout << l_name << " (" << (l_elo / total) * 100 << "%)" << endl;
+    }
+
 
     public:
 
@@ -28,7 +104,16 @@ class Prediction {
     //     day = stoi(m.date.substr(6, 2));
     // }
 
-    void update_player_ELO(const Match &m, Player &winner, Player &loser);
+    void update_player_ELO(const Match &m, Player &winner, Player &loser) {
+        winner.ranking = m.w_rank;
+        loser.ranking = m.l_rank;
+        double winner_update, loser_update;
+        double first_update = equal_updates(m, winner, loser);
+        winner_update = first_update;
+        loser_update = first_update;
+        double ace_update = 0.1*max_update, df_update = 0.1*max_update, bp_update = 0.1*max_update;
+        // TODO: update ace, df, bp
+    }
 
     // https://github.com/ben-strasser/fast-cpp-csv-parser
     void train(string &train_file) {
@@ -38,23 +123,24 @@ class Prediction {
         int w_rank, l_rank;
         int w_ace, l_ace;
         int w_df, l_df;
-        double l_bp_faced; int l_bp_saved;
-        double w_bp_faced; int w_bp_saved;
-        io::CSVReader<16> csvin(train_file);
-        csvin.read_header(io::ignore_extra_column, "surface", "tourney_date", "winner_name", 
-        "loser_name", "score", "best_of", "minutes", "w_ace", "w_df", "w_bpSaved", "w_bpFaced", 
-        "l_ace", "l_df", "l_bpSaved", "l_bpFaced", "winner_rank", "loser_rank");
+        double l_bp_faced, w_bp_faced;
+        int l_bp_saved, w_bp_saved;
+        char tourney_level;
+        io::CSVReader<18> csvin(train_file);
+        csvin.read_header(io::ignore_extra_column, "surface", "tourney_level", "tourney_date", 
+        "winner_name", "loser_name", "score", "best_of", "minutes", "w_ace", "w_df", "w_bpSaved", 
+        "w_bpFaced", "l_ace", "l_df", "l_bpSaved", "l_bpFaced", "winner_rank", "loser_rank");
 
-        while (csvin.read_row(surface, winner_name, loser_name, score, date, time, w_ace, w_df,
-        w_bp_saved, w_bp_faced, l_ace, l_df, l_bp_saved, l_bp_faced, w_rank, l_rank)) {
+        while (csvin.read_row(surface, tourney_level, winner_name, loser_name, score, date, time, 
+        w_ace, w_df, w_bp_saved, w_bp_faced, l_ace, l_df, l_bp_saved, l_bp_faced, w_rank, l_rank)) {
             // If somebody retired mid-match, then skip this match data
             if (score.find("RET") != std::string::npos) {
                 continue;
             }
             
             // instantiate match data using Match class
-            Match *m = new Match(surface, winner_name, loser_name, score, date, time, w_ace, 
-            w_df, l_ace, l_df, w_rank, l_rank, w_bp_saved, w_bp_faced, l_bp_saved, l_bp_faced);
+            Match *m = new Match(surface, winner_name, loser_name, score, date, time, w_ace, w_df,
+            l_ace, l_df, w_rank, l_rank, w_bp_saved, w_bp_faced, l_bp_saved, l_bp_faced, tourney_level);
             // find players, if not found then create new Players
             auto winner = players.find(winner_name);
             auto loser = players.find(loser_name);
@@ -76,25 +162,6 @@ class Prediction {
             
             delete m;
         }
-    }
-
-    // Winner_name (%) ---------|------ Loser_name (%)
-    // 20 dashes in total, so round to nearest 5%
-    void print_visual(const string &w_name, const string &l_name, double w_elo, double l_elo) {
-        double total = w_elo + l_elo;
-        double w_perc = (w_elo / total) * 100;
-        double l_perc = (l_elo / total) * 100;
-        cout << w_name << " (" << w_perc << "%) ";
-        while (w_perc > 0) {
-            cout << "-";
-            w_perc -= 5;
-        }
-        cout << "|";
-        while (l_perc > 0) {
-            cout << "-";
-            l_perc -= 5;
-        }
-        cout << l_name << " (" << (l_elo / total) * 100 << "%)" << endl;
     }
     
 
@@ -172,7 +239,6 @@ int main(int argc, char *argv[]) {
         cout << "Please enter a valid player name" << endl;
     }
     
-
     delete p;
     return 0;
 }
