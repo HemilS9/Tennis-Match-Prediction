@@ -231,7 +231,7 @@ class Prediction {
         uint8_t best_of;
 
         io::CSVReader<17> csvin(train_file);
-        csvin.read_header(io::ignore_extra_column, "surface", "tourney_date", "winner_name"
+        csvin.read_header(io::ignore_extra_column, "surface", "tourney_date", "winner_name",
         "loser_name", "score", "best_of", "minutes", "w_ace", "w_df", "w_bpSaved", 
         "w_bpFaced", "l_ace", "l_df", "l_bpSaved", "l_bpFaced", "winner_rank", "loser_rank");
 
@@ -320,7 +320,7 @@ argv[4] = training_data.csv
 */
 int main(int argc, char *argv[]) {
     std::cout << std::setprecision(2);
-    if (argc != 4) {
+    if (argc != 5) {
         cout << "Please enter the following information in the order below:\n" <<
         "Player1 Player2 Surface training_file.csv" << endl;
         return 1;

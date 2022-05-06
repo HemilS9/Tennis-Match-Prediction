@@ -1,7 +1,7 @@
 CXX ?= g++
 CXXFLAGS ?= -Wall -Werror -pedantic --std=c++17 -g -fsanitize=address -fsanitize=undefined -D_GLIBCXX_DEBUG
 
-prediction: predict.cpp
+predict.exe: predict.cpp
 	$(CXX) $(CXXFLAGS) predict.cpp -o $@
 
 clean:
