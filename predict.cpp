@@ -16,7 +16,7 @@ class PlayerError {};
 class Prediction {
     private:
     string surface;
-    const int max_update = 300;
+    const int max_update = 250;
 
     int find_num_sets(const string &score) {
         int num = 0;
@@ -36,17 +36,21 @@ class Prediction {
         int minutes = m.time;
 
         // update score and time according to Bo5
-        if (m.tourney_level == 'G') {
+        if (m.best_of == 5) {
             if (num_sets == 5) 
                 score_update *= 0.25;
             else if (num_sets == 4) 
                 score_update *= 0.6;
             
-            // Lower cutoff: 90 mins and Upper cutoff: 300 mins
-            double change = (0.1*max_update) / 210;
-            while (minutes > 90) {
-                --minutes;
-                time_update -= change;
+            // Lower cutoff: 90 mins and Upper cutoff: 270 mins
+            double change = (0.1*max_update) / 180;
+            if (minutes > 270) 
+                time_update = 0;
+            else {
+                while (minutes > 90) {
+                    --minutes;
+                    time_update -= change;
+                }
             }
         }
         // update score and time according to Bo3
@@ -54,11 +58,15 @@ class Prediction {
             if (num_sets == 3) 
                 score_update /= 2;
 
-            // Lower cutoff: 60 mins and Upper cutoff: 200 mins
-            double change = (0.1*max_update) / 140;
-            while (minutes > 60) {
-                --minutes;
-                time_update -= change;
+            // Lower cutoff: 50 mins and Upper cutoff: 170 mins
+            double change = (0.1*max_update) / 120;
+            if (minutes > 170) 
+                time_update = 0;
+            else {
+                while (minutes > 50) {
+                    --minutes;
+                    time_update -= change;
+                }
             }
         }
         // Update rank_diff. The bigger the upset, the larger the value
@@ -72,6 +80,82 @@ class Prediction {
             rank_diff_update = 0;
 
         return score_update + time_update + rank_diff_update;
+    }
+
+    // Ace: Upper cutoff is 15 in Bo3, 20 in Bo5
+    // Upper onwards = full for winner, and 0 for loser
+    double ace_update(const Match &m, const Player &p, bool winner) {
+        double max = 0.1*max_update;
+        if (m.best_of == 5) {
+            if (winner) {
+                if (m.w_ace < 20) 
+                    return (m.w_ace * max) / 20;
+                else {
+                    return max;
+                }
+            }
+            else {
+                if (m.l_ace >= 20) 
+                    return 0;
+                else {
+                    return max - ((m.l_ace * max) / 20);
+                }
+            }
+        }
+        else {
+            if (winner) {
+                if (m.w_ace < 15) 
+                    return (m.w_ace * max) / 15;
+                else {
+                    return max;
+                }
+            }
+            else {
+                if (m.l_ace >= 15) 
+                    return 0;
+                else {
+                    return max - ((m.l_ace * max) / 15);
+                }
+            }
+        }
+    }
+
+    // DF: Upper cutoff is 12 in Bo3, 16 in Bo5
+    // Upper onwards = 0 for winner, and full value for loser 
+    double df_update(const Match &m, const Player &p, bool winner) {
+        double max = 0.1*max_update;
+        if (m.best_of == 5) {
+            if (winner) {
+                if (m.w_df < 16) 
+                    return max - ((m.w_df * max) / 16);
+                else {
+                    return 0;
+                }
+            }
+            else {
+                if (m.l_df >= 16) 
+                    return max;
+                else {
+                    return (m.l_df * max) / 16;
+                }
+            }
+        }
+        else {
+            if (winner) {
+                if (m.w_df < 12) 
+                    return max - ((m.w_df * max) / 12);
+                else {
+                    return 0;
+                }
+            }
+            else {
+                if (m.l_df >= 12) 
+                    return max;
+                else {
+                    return (m.l_df * max) / 12;
+                }
+            }
+        }
     }
 
     // Winner_name (%) ---------|------ Loser_name (%)
@@ -107,12 +191,31 @@ class Prediction {
     void update_player_ELO(const Match &m, Player &winner, Player &loser) {
         winner.ranking = m.w_rank;
         loser.ranking = m.l_rank;
-        double winner_update, loser_update;
+        double winner_update = 0, loser_update = 0;
         double first_update = equal_updates(m, winner, loser);
+
         winner_update = first_update;
         loser_update = first_update;
-        double ace_update = 0.1*max_update, df_update = 0.1*max_update, bp_update = 0.1*max_update;
-        // TODO: update ace, df, bp
+
+        winner_update = first_update + ace_update(m, winner, true) + df_update(m, winner, true) 
+                        + (m.w_bp_conversion * 0.1 * max_update);
+        loser_update = first_update + ace_update(m, loser, false) + df_update(m, loser, false) 
+                        + (max_update - (m.l_bp_conversion * 0.1 * max_update));
+
+        switch(m.surface[0]) {
+            case 'H':
+                winner.elo_hard += winner_update;
+                loser.elo_hard -= loser_update;
+                break; 
+            case 'C':
+                winner.elo_clay += winner_update;
+                loser.elo_clay -= loser_update;
+                break;
+            case 'G':
+                winner.elo_grass += winner_update;
+                loser.elo_grass -= loser_update;
+                break;
+        }
     }
 
     // https://github.com/ben-strasser/fast-cpp-csv-parser
@@ -125,13 +228,14 @@ class Prediction {
         int w_df, l_df;
         double l_bp_faced, w_bp_faced;
         int l_bp_saved, w_bp_saved;
-        char tourney_level;
-        io::CSVReader<18> csvin(train_file);
-        csvin.read_header(io::ignore_extra_column, "surface", "tourney_level", "tourney_date", 
-        "winner_name", "loser_name", "score", "best_of", "minutes", "w_ace", "w_df", "w_bpSaved", 
+        uint8_t best_of;
+
+        io::CSVReader<17> csvin(train_file);
+        csvin.read_header(io::ignore_extra_column, "surface", "tourney_date", "winner_name"
+        "loser_name", "score", "best_of", "minutes", "w_ace", "w_df", "w_bpSaved", 
         "w_bpFaced", "l_ace", "l_df", "l_bpSaved", "l_bpFaced", "winner_rank", "loser_rank");
 
-        while (csvin.read_row(surface, tourney_level, winner_name, loser_name, score, date, time, 
+        while (csvin.read_row(surface, date, winner_name, loser_name, score, best_of, time, 
         w_ace, w_df, w_bp_saved, w_bp_faced, l_ace, l_df, l_bp_saved, l_bp_faced, w_rank, l_rank)) {
             // If somebody retired mid-match, then skip this match data
             if (score.find("RET") != std::string::npos) {
@@ -140,7 +244,7 @@ class Prediction {
             
             // instantiate match data using Match class
             Match *m = new Match(surface, winner_name, loser_name, score, date, time, w_ace, w_df,
-            l_ace, l_df, w_rank, l_rank, w_bp_saved, w_bp_faced, l_bp_saved, l_bp_faced, tourney_level);
+            l_ace, l_df, w_rank, l_rank, best_of, w_bp_saved, w_bp_faced, l_bp_saved, l_bp_faced);
             // find players, if not found then create new Players
             auto winner = players.find(winner_name);
             auto loser = players.find(loser_name);
@@ -208,7 +312,7 @@ class Prediction {
 
 /*
 argc = 5
-argv[0] = ./main.exe
+argv[0] = ./predict.exe
 argv[1] = player1
 argv[2] = player2
 argv[3] = surface ("Hard", "Clay", "Grass")
