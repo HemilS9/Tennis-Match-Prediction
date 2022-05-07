@@ -177,6 +177,17 @@ class Prediction {
         cout << l_name << " (" << (l_elo / total) * 100 << "%)" << endl;
     }
 
+    // Remove spaces from the input string
+    string no_spaces(const std::string &name) {
+        string result = "";
+        for (char c : name) {
+            if (c != ' ') {
+                result.push_back(c);
+            }
+        }
+        return result;
+    }
+
 
     public:
 
@@ -243,8 +254,11 @@ class Prediction {
             }
             
             // instantiate match data using Match class
+            winner_name = no_spaces(winner_name);
+            loser_name = no_spaces(loser_name);
             Match *m = new Match(surface, winner_name, loser_name, score, date, time, w_ace, w_df,
             l_ace, l_df, w_rank, l_rank, best_of, w_bp_saved, w_bp_faced, l_bp_saved, l_bp_faced);
+
             // find players, if not found then create new Players
             auto winner = players.find(winner_name);
             auto loser = players.find(loser_name);
@@ -263,6 +277,7 @@ class Prediction {
             
             // update Player metrics from Match data
             update_player_ELO(*m, winner->second, loser->second);
+            cout << "Updating player metrics" << endl;
             
             delete m;
         }
@@ -322,7 +337,9 @@ int main(int argc, char *argv[]) {
     std::cout << std::setprecision(2);
     if (argc != 5) {
         cout << "Please enter the following information in the order below:\n" <<
-        "Player1 Player2 Surface training_file.csv" << endl;
+        "Player1 Player2 Surface training_file.csv\n"
+        << "Note:\n- You must enter player names WITHOUT spaces\n"
+        << "- The surface must be one of the following: Hard, Clay, Grass" << endl;
         return 1;
     }
     string training_file = argv[4];
@@ -340,7 +357,8 @@ int main(int argc, char *argv[]) {
         cout << "Invalid surface" << endl;
     }
     catch (PlayerError &pe) {
-        cout << "Please enter a valid player name" << endl;
+        cout << "Please enter a valid player name\n"
+        << "Also note that player names must be entered without spaces" << endl;
     }
     
     delete p;
