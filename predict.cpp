@@ -16,7 +16,7 @@ class PlayerError {};
 class Prediction {
     private:
     string surface;
-    const int max_update = 250;
+    const int max_update = 500;
 
     int find_num_sets(const string &score) {
         int num = 0;
@@ -174,19 +174,19 @@ class Prediction {
             cout << "-";
             l_perc -= 5;
         }
-        cout << l_name << " (" << (l_elo / total) * 100 << "%)" << endl;
+        cout << " " << l_name << " (" << (l_elo / total) * 100 << "%)" << endl;
     }
 
     // Remove spaces from the input string
-    string no_spaces(const std::string &name) {
-        string result = "";
-        for (char c : name) {
-            if (c != ' ') {
-                result.push_back(c);
-            }
-        }
-        return result;
-    }
+    // string no_spaces(const std::string &name) {
+    //     string result = "";
+    //     for (char c : name) {
+    //         if (c != ' ') {
+    //             result.push_back(c);
+    //         }
+    //     }
+    //     return result;
+    // }
 
 
     public:
@@ -254,8 +254,6 @@ class Prediction {
             }
             
             // instantiate match data using Match class
-            winner_name = no_spaces(winner_name);
-            loser_name = no_spaces(loser_name);
             Match *m = new Match(surface, winner_name, loser_name, score, date, time, w_ace, w_df,
             l_ace, l_df, w_rank, l_rank, best_of, w_bp_saved, w_bp_faced, l_bp_saved, l_bp_faced);
 
@@ -277,7 +275,7 @@ class Prediction {
             
             // update Player metrics from Match data
             update_player_ELO(*m, winner->second, loser->second);
-            cout << "Updating player metrics" << endl;
+            // cout << "Updating player metrics" << endl;
             
             delete m;
         }
@@ -285,6 +283,7 @@ class Prediction {
     
 
     void print_prediction(const string player1, const string player2, const string surface) {
+        // TODO: CHECK SURFACE BEFORE TRAINING
         if (surface != "Hard" && surface != "Clay" && surface != "Grass") {
             throw SurfaceError();
         }
@@ -334,11 +333,11 @@ argv[3] = surface ("Hard", "Clay", "Grass")
 argv[4] = training_data.csv
 */
 int main(int argc, char *argv[]) {
-    std::cout << std::setprecision(2);
+    std::cout << std::setprecision(3);
     if (argc != 5) {
         cout << "Please enter the following information in the order below:\n" <<
-        "Player1 Player2 Surface training_file.csv\n"
-        << "Note:\n- You must enter player names WITHOUT spaces\n"
+        "\"Player1\" \"Player2\" Surface training_file.csv\n"
+        << "Note:\n- Please refer to the input dataset for full player names and spelling\n"
         << "- The surface must be one of the following: Hard, Clay, Grass" << endl;
         return 1;
     }
@@ -354,11 +353,12 @@ int main(int argc, char *argv[]) {
         p->print_prediction(player1, player2, surface);
     }
     catch (SurfaceError &s) {
-        cout << "Invalid surface" << endl;
+        cout << "Invalid surface.\n"
+        << "The surface must be one of the following: Hard, Clay, Grass" << endl;
     }
     catch (PlayerError &pe) {
-        cout << "Please enter a valid player name\n"
-        << "Also note that player names must be entered without spaces" << endl;
+        cout << "Please enter a valid player name.\n" <<
+        "When entering player names in the command line, ensure they are inside quotes." << endl;
     }
     
     delete p;
