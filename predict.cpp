@@ -10,7 +10,6 @@
 
 using namespace std;
 
-class SurfaceError {};
 class PlayerError {};
 
 class Prediction {
@@ -30,8 +29,8 @@ class Prediction {
 
     double equal_updates(const Match &m, const Player &winner, const Player &loser) {
         // Score, Rank_Diff, Time
-        double score_update = 0.25*max_update, rank_diff_update = 0.35*max_update, 
-                            time_update = 0.1*max_update;
+        double score_update = 0.25*max_update, rank_diff_update = 0.25*max_update, 
+                            time_update = 0.2*max_update;
         int num_sets = find_num_sets(m.score);
         int minutes = m.time;
 
@@ -253,7 +252,7 @@ class Prediction {
                 continue;
             }
             
-            // instantiate match data using Match class
+            // instantiate match data from csv data
             Match *m = new Match(surface, winner_name, loser_name, score, date, time, w_ace, w_df,
             l_ace, l_df, w_rank, l_rank, best_of, w_bp_saved, w_bp_faced, l_bp_saved, l_bp_faced);
 
@@ -261,33 +260,42 @@ class Prediction {
             auto winner = players.find(winner_name);
             auto loser = players.find(loser_name);
             if (winner == players.end()) {
-                // create new Player
                 Player p1(winner_name, w_rank);
                 players.insert({winner_name, p1});
                 winner = players.find(winner_name);
             }
             if (loser == players.end()) {
-                // create new Player
                 Player p2(loser_name, l_rank);
                 players.insert({loser_name, p2});
                 loser = players.find(loser_name);
             }
             
-            // update Player metrics from Match data
             update_player_ELO(*m, winner->second, loser->second);
-            // cout << "Updating player metrics" << endl;
             
             delete m;
         }
     }
+
+    // Player predict(const string &player1, const string &player2, char surface) {
+    //     // Check if player names are valid
+    //     auto p1 = players.find(player1);
+    //     auto p2 = players.find(player2);
+    //     if (p1 == players.end() || p2 == players.end()) {
+    //         throw PlayerError();
+    //     }
+
+    //     switch (surface) {
+    //         case 'H':
+
+    //         case 'C':
+
+    //         case 'G':
+    //     }
+    // }
     
 
     void print_prediction(const string player1, const string player2, const string surface) {
-        // TODO: CHECK SURFACE BEFORE TRAINING
-        if (surface != "Hard" && surface != "Clay" && surface != "Grass") {
-            throw SurfaceError();
-        }
-
+        // Check if player names are valid
         auto p1 = players.find(player1);
         auto p2 = players.find(player2);
         if (p1 == players.end() || p2 == players.end()) {
@@ -320,7 +328,14 @@ class Prediction {
                 print_visual(winner.name, loser.name, winner.elo_grass, loser.elo_grass);
             }
             break;
-        }//switch
+        }
+    }
+
+    bool validate_surface(const string &surface) {
+        if (surface != "Hard" && surface != "Clay" && surface != "Grass") {
+            return false;
+        }
+        return true;
     }
 };
 
@@ -341,20 +356,21 @@ int main(int argc, char *argv[]) {
         << "- The surface must be one of the following: Hard, Clay, Grass" << endl;
         return 1;
     }
-    string training_file = argv[4];
-
-    Prediction *p = new Prediction;
-    p->train(training_file);
-
     string player1 = argv[1];
     string player2 = argv[2];
     string surface = argv[3];
+    string training_file = argv[4];
+
+    Prediction *p = new Prediction;
+    if (!p->validate_surface(surface)) {
+        cout << "Invalide surface\n"
+        << "The surface must be one of the following: Hard, Clay, Grass" << endl;
+        return 1;
+    }
+    p->train(training_file);
+
     try {
         p->print_prediction(player1, player2, surface);
-    }
-    catch (SurfaceError &s) {
-        cout << "Invalid surface.\n"
-        << "The surface must be one of the following: Hard, Clay, Grass" << endl;
     }
     catch (PlayerError &pe) {
         cout << "Please enter a valid player name.\n" <<

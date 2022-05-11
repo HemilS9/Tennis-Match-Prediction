@@ -5,8 +5,8 @@ NOTES
 
 Parameters to use in training (to modify ELO score for players):
 - score (25%)
-- diff in world rank (35%)
-- time taken (10%)
+- diff in world rank (25%)
+- time taken (20%)
 ############ Above is same, below is separate by player ############
 - aces (10%)
 - double faults (10%)
@@ -14,7 +14,7 @@ Parameters to use in training (to modify ELO score for players):
 
 Parameters to use for prediction(Take ELO score from training and modify with below):
 - H2H: calculate w/o H2H, then multiply by 0.9 and put 0.1 weight on H2H
-
+- Form: Consider win percentage over last 10 matches + time since last match
 */
 
 class Player {
