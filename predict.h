@@ -4,8 +4,8 @@
 NOTES
 
 Parameters to use in training (to modify ELO score for players):
-- score (25%)
-- diff in world rank (25%)
+- score (30%)
+- diff in world rank (20%)
 - time taken (20%)
 ############ Above is same, below is separate by player ############
 - aces (10%)

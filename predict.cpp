@@ -27,20 +27,58 @@ class Prediction {
         return num;
     }
 
+    // Output score_update given the score, num sets, and max update
+    double find_score_update(const string &score, double max_score_update, int num_sets) {
+        vector<int> sets;
+        sets.reserve(static_cast<size_t>(num_sets));
+        int counter = 0;
+        sets.push_back(0);
+        for (char c : score) {
+            if (c == ' ')
+                sets.push_back(counter +1);
+            ++counter;
+        }
+        
+        double result = 0;
+        double max_per_set = max_score_update / num_sets;
+        for (int i = 0; i < num_sets; ++i) {
+            int set_ix = sets[i];
+            int first = (score[set_ix]) - '0';
+            int second = (score[set_ix +2]) - '0';
+
+            // If winner won set
+            if (first > second) {
+                // If tiebreaker, assign max/10 points
+                if (score[set_ix + 2] == '6') {
+                    result += max_per_set / 10;
+                }
+                else {
+                    result += ((6 - second) / 6) * max_per_set;
+                }
+            }
+            else {
+                // If tiebreaker, assign max/10 points
+                if (score[set_ix] == '6') {
+                    result += max_per_set / 10;
+                }
+                else {
+                    result += (first / 6) * max_per_set;
+                }
+            }
+        }
+        return result;
+    }
+
     double equal_updates(const Match &m, const Player &winner, const Player &loser) {
         // Score, Rank_Diff, Time
-        double score_update = 0.25*max_update, rank_diff_update = 0.25*max_update, 
-                            time_update = 0.2*max_update;
+        double rank_diff_update = 0.20*max_update, time_update = 0.2*max_update;
         int num_sets = find_num_sets(m.score);
         int minutes = m.time;
+        
+        double score_update = find_score_update(m.score, 0.30*max_update, num_sets);
 
-        // update score and time according to Bo5
+        // update time according to Bo5
         if (m.best_of == 5) {
-            if (num_sets == 5) 
-                score_update *= 0.25;
-            else if (num_sets == 4) 
-                score_update *= 0.6;
-            
             // Lower cutoff: 90 mins and Upper cutoff: 270 mins
             double change = (0.1*max_update) / 180;
             if (minutes > 270) 
@@ -52,11 +90,8 @@ class Prediction {
                 }
             }
         }
-        // update score and time according to Bo3
+        // update time according to Bo3
         else {
-            if (num_sets == 3) 
-                score_update /= 2;
-
             // Lower cutoff: 50 mins and Upper cutoff: 170 mins
             double change = (0.1*max_update) / 120;
             if (minutes > 170) 
@@ -72,11 +107,11 @@ class Prediction {
         // 30 ranking points is the cutoff for biggest upset
         int upset = winner.ranking - loser.ranking;
         if (upset > 0 && upset < 30)
-            rank_diff_update -= (upset * 0.1 * max_update) / 30;
-        else if (upset < 0 && upset >= -5)  
+            rank_diff_update = (upset * 0.2 * max_update) / 30;
+        else if (upset < 0 && upset >= -8)  
             rank_diff_update *= 0.25;
         else if (upset < -5)
-            rank_diff_update = 0;
+            rank_diff_update = 0.1;
 
         return score_update + time_update + rank_diff_update;
     }
