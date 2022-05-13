@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
-#include <map> 
+#include <vector> 
 #include <unordered_map>
 #include <ctime>
 #include <iomanip>
@@ -15,7 +14,13 @@ class PlayerError {};
 class Prediction {
     private:
     string surface;
-    const int max_update = 500;
+    const int max_update = 400;
+    const double max_score_update = max_update * 0.3;
+    const double max_time_update = max_update * 0.15;
+    const double max_rank_diff_update = max_update * 0.25;
+    const double max_ace_update = max_update * 0.1;
+    const double max_df_update = max_update * 0.1;
+    const double max_bp_update = max_update * 0.1;
 
     int find_num_sets(const string &score) {
         int num = 0;
@@ -28,7 +33,7 @@ class Prediction {
     }
 
     // Output score_update given the score, num sets, and max update
-    double find_score_update(const string &score, double max_score_update, int num_sets) {
+    double find_score_update(const string &score, int num_sets) {
         vector<int> sets;
         sets.reserve(static_cast<size_t>(num_sets));
         int counter = 0;
@@ -71,11 +76,11 @@ class Prediction {
 
     double equal_updates(const Match &m, const Player &winner, const Player &loser) {
         // Score, Rank_Diff, Time
-        double rank_diff_update = 0.20*max_update, time_update = 0.2*max_update;
+        double rank_diff_update = max_rank_diff_update, time_update = max_time_update;
         int num_sets = find_num_sets(m.score);
         int minutes = m.time;
         
-        double score_update = find_score_update(m.score, 0.30*max_update, num_sets);
+        double score_update = find_score_update(m.score, num_sets);
 
         // update time according to Bo5
         if (m.best_of == 5) {
@@ -119,36 +124,35 @@ class Prediction {
     // Ace: Upper cutoff is 15 in Bo3, 20 in Bo5
     // Upper onwards = full for winner, and 0 for loser
     double ace_update(const Match &m, const Player &p, bool winner) {
-        double max = 0.1*max_update;
         if (m.best_of == 5) {
             if (winner) {
                 if (m.w_ace < 20) 
-                    return (m.w_ace * max) / 20;
+                    return (m.w_ace * max_ace_update) / 20;
                 else {
-                    return max;
+                    return max_ace_update;
                 }
             }
             else {
                 if (m.l_ace >= 20) 
                     return 0;
                 else {
-                    return max - ((m.l_ace * max) / 20);
+                    return max_ace_update - ((m.l_ace * max_ace_update) / 20);
                 }
             }
         }
         else {
             if (winner) {
                 if (m.w_ace < 15) 
-                    return (m.w_ace * max) / 15;
+                    return (m.w_ace * max_ace_update) / 15;
                 else {
-                    return max;
+                    return max_ace_update;
                 }
             }
             else {
                 if (m.l_ace >= 15) 
                     return 0;
                 else {
-                    return max - ((m.l_ace * max) / 15);
+                    return max_ace_update - ((m.l_ace * max_ace_update) / 15);
                 }
             }
         }
@@ -157,36 +161,35 @@ class Prediction {
     // DF: Upper cutoff is 12 in Bo3, 16 in Bo5
     // Upper onwards = 0 for winner, and full value for loser 
     double df_update(const Match &m, const Player &p, bool winner) {
-        double max = 0.1*max_update;
         if (m.best_of == 5) {
             if (winner) {
                 if (m.w_df < 16) 
-                    return max - ((m.w_df * max) / 16);
+                    return max_df_update - ((m.w_df * max_df_update) / 16);
                 else {
                     return 0;
                 }
             }
             else {
                 if (m.l_df >= 16) 
-                    return max;
+                    return max_df_update;
                 else {
-                    return (m.l_df * max) / 16;
+                    return (m.l_df * max_df_update) / 16;
                 }
             }
         }
         else {
             if (winner) {
                 if (m.w_df < 12) 
-                    return max - ((m.w_df * max) / 12);
+                    return max_df_update - ((m.w_df * max_df_update) / 12);
                 else {
                     return 0;
                 }
             }
             else {
                 if (m.l_df >= 12) 
-                    return max;
+                    return max_df_update;
                 else {
-                    return (m.l_df * max) / 12;
+                    return (m.l_df * max_df_update) / 12;
                 }
             }
         }
@@ -211,17 +214,6 @@ class Prediction {
         cout << " " << l_name << " (" << (l_elo / total) * 100 << "%)" << endl;
     }
 
-    // Remove spaces from the input string
-    // string no_spaces(const std::string &name) {
-    //     string result = "";
-    //     for (char c : name) {
-    //         if (c != ' ') {
-    //             result.push_back(c);
-    //         }
-    //     }
-    //     return result;
-    // }
-
 
     public:
 
@@ -243,9 +235,9 @@ class Prediction {
         loser_update = first_update;
 
         winner_update = first_update + ace_update(m, winner, true) + df_update(m, winner, true) 
-                        + (m.w_bp_conversion * 0.1 * max_update);
+                        + (m.w_bp_conversion * max_bp_update);
         loser_update = first_update + ace_update(m, loser, false) + df_update(m, loser, false) 
-                        + (max_update - (m.l_bp_conversion * 0.1 * max_update));
+                        + (max_update - (m.l_bp_conversion * max_bp_update));
 
         switch(m.surface[0]) {
             case 'H':
