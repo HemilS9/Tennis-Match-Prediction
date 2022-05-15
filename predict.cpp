@@ -255,7 +255,6 @@ class Prediction {
         }
     }
 
-    // https://github.com/ben-strasser/fast-cpp-csv-parser
     void train(string &train_file) {
         string surface, score, date;
         string winner_name, loser_name;  
