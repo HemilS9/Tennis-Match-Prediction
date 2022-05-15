@@ -7,7 +7,7 @@ Run the program with the following command line arguments:
 - "Player 2 Name"
 - Surface ("Hard", "Clay, "Grass)
 - training_data.csv
-Please reference the example below: 
+- Please reference the example below: 
 ./predict.exe "Novak Djokovic" "Rafael Nadal" Clay 2021_data.csv
 
 Important Notes:
