@@ -27,7 +27,7 @@ The metrics include:
 - Break point conversion of each player
 
 # Credits:
-- The CSV parser used in this project is by Ben Strasser(ben-strasser).
-- The match data in CSV format is compiled by Jeff Sackmann(JeffSachmann).
+- The CSV parser used in this project is by Ben Strasser: https://github.com/ben-strasser/fast-cpp-csv-parser
+- The match data in CSV format is compiled by Jeff Sackmann: https://github.com/JeffSackmann/tennis_atp
 
 Created by Hemil Shah: <heshah@umich.edu>
