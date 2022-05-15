@@ -1,5 +1,5 @@
 # Tennis-Match-Prediction
-A command-line program that predicts the winner of an ATP (Men's) tennis match given the names of the 2 players, the surface ("Hard", "Clay", "Grass"), and a csv file with match data.
+A command-line program that predicts the winner of an ATP tennis match given the names of the 2 players, the surface ("Hard", "Clay", "Grass"), and a csv file with match data.
 
 # Instructions:
 Run the program with the following command line arguments:
