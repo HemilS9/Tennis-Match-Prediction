@@ -17,7 +17,7 @@ Run the program with the following command line arguments:
 # How does it work?
 At a high level, each player is assigned an ELO that is initialized based on their world ranking and modified after each match a player plays.
 
-The training phase modifies a player's ELO based on several metrics, and each metric is assigned a weight (which can be easily modified, if wanted, near the top of the source code in predict.cpp). 
+The training phase modifies a player's ELO based on several metrics, and each metric is assigned a weight between 0 and 1 (which can be easily modified, if wanted, near the top of the source code in predict.cpp). 
 The metrics include:
 - The score
 - The time taken to complete the match
