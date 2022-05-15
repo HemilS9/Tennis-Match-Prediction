@@ -7,7 +7,8 @@ Run the program with the following command line arguments:
 - "Player 2 Name"
 - Surface ("Hard", "Clay, "Grass)
 - training_data.csv
-- Please reference the following example: ./predict.exe "Novak Djokovic" "Rafael Nadal" Clay 2021_data.csv
+- Please reference the following example: 
+` ./predict.exe "Novak Djokovic" "Rafael Nadal" Clay 2021_data.csv `
 
 Important Notes:
 - The dataset is not updated weekly (it's updated at most a couple times each year), so the farther away a given, current tennis match is from the most recent matches in the dataset, the less accurate the prediction is expected to be. 
