@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-#include <vector> 
 #include <unordered_map>
 #include <ctime>
 #include <iomanip>
@@ -255,6 +254,15 @@ class Prediction {
         }
     }
 
+    void update_recent_form_metrics(Player &winner, Player &loser) {
+        // recent wins 
+        if (winner.recent_wins < 10)
+            winner.recent_wins++;
+        if (loser.recent_wins > 0)
+            loser.recent_wins--;
+        // time since last match TODO
+    }
+
     void train(string &train_file) {
         string surface, score, date;
         string winner_name, loser_name;  
@@ -297,6 +305,7 @@ class Prediction {
             }
             
             update_player_ELO(*m, winner->second, loser->second);
+            update_recent_form_metrics(winner->second, loser->second);
             
             delete m;
         }
@@ -320,6 +329,19 @@ class Prediction {
     // }
     
 
+    // elo multiplier during prediction
+    // accomodate for 1) recent form and 2) time since last match
+    double multiplier(const Player &p) {
+        double mult = 1.0;
+        mult += 0.01*(p.recent_wins / 10); 
+        if (p.days_since_last_match > 60)
+            mult = 0.6;
+        else if (p.days_since_last_match >= 20)
+            mult -= 0.01*(p.days_since_last_match - 20);
+        return mult;
+    }
+
+
     void print_prediction(const string player1, const string player2, const string surface) {
         // Check if player names are valid
         auto p1 = players.find(player1);
@@ -335,7 +357,8 @@ class Prediction {
                 Player winner = (p1->second.elo_hard > p2->second.elo_hard) ? p1->second : p2->second;
                 Player loser = (winner.name == player1) ? p2->second : p1->second;
                 cout << "Winner : " << winner.name << endl;
-                print_visual(winner.name, loser.name, winner.elo_hard, loser.elo_hard);
+                print_visual(winner.name, loser.name, 
+                winner.elo_hard * multiplier(winner), loser.elo_hard * multiplier(loser));
             }
             break;
             case 'C':
@@ -343,7 +366,8 @@ class Prediction {
                 Player winner = (p1->second.elo_clay > p2->second.elo_clay) ? p1->second : p2->second;
                 Player loser = (winner.name == player1) ? p2->second : p1->second;
                 cout << "Winner : " << winner.name << endl;
-                print_visual(winner.name, loser.name, winner.elo_clay, loser.elo_clay);
+                print_visual(winner.name, loser.name, 
+                winner.elo_clay * multiplier(winner), loser.elo_clay * multiplier(loser));
             }
             break;
             case 'G':
@@ -351,7 +375,8 @@ class Prediction {
                 Player winner = (p1->second.elo_grass > p2->second.elo_grass) ? p1->second : p2->second;
                 Player loser = (winner.name == player1) ? p2->second : p1->second;
                 cout << "Winner : " << winner.name << endl;
-                print_visual(winner.name, loser.name, winner.elo_grass, loser.elo_grass);
+                print_visual(winner.name, loser.name, 
+                winner.elo_grass * multiplier(winner), loser.elo_grass * multiplier(loser));
             }
             break;
         }
