@@ -336,7 +336,7 @@ class Prediction {
         mult += 0.01*(p.recent_wins / 10); 
         if (p.days_since_last_match > 60)
             mult = 0.6;
-        else if (p.days_since_last_match >= 20)
+        else if (p.days_since_last_match > 20)
             mult -= 0.01*(p.days_since_last_match - 20);
         return mult;
     }
