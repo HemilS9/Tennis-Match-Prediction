@@ -13,6 +13,7 @@ class PlayerError {};
 class Prediction {
     private:
     string surface;
+    string last_date;
     const int max_update = 400;
     const double max_score_update = max_update * 0.3;
     const double max_time_update = max_update * 0.15;
@@ -20,6 +21,29 @@ class Prediction {
     const double max_ace_update = max_update * 0.1;
     const double max_df_update = max_update * 0.1;
     const double max_bp_update = max_update * 0.1;
+
+    void parse_last_time(int &year, int &month, int &day) {
+        year = stoi(last_date.substr(0, 4));
+        month = stoi(last_date.substr(4, 2));
+        day = stoi(last_date.substr(6, 2));
+    }
+
+    void parse_time(const Player &p, int &year, int &month, int &day) {
+        year = stoi(p.last_match_date.substr(0, 4));
+        month = stoi(p.last_match_date.substr(4, 2));
+        day = stoi(p.last_match_date.substr(6, 2));
+    }
+
+    int find_days_since_last(const Player &p) {
+        int p_year, p_month, p_day, year, month, day;
+        parse_time(p, p_year, p_month, p_day);
+        parse_last_time(year, month, day);
+        int result = 0;
+        result += (year - p_year) * 365;
+        result += (month - p_month) * 30;
+        result += (day - p_day);
+        return result;
+    }
 
     int find_num_sets(const string &score) {
         int num = 0;
@@ -218,12 +242,6 @@ class Prediction {
 
     unordered_map<string, Player> players; // Key: player name | Value: Player info
 
-    // static void parse_time(const Match &m, int &year, int &month, int &day) {
-    //     year = stoi(m.date.substr(0, 4));
-    //     month = stoi(m.date.substr(4, 2));
-    //     day = stoi(m.date.substr(6, 2));
-    // }
-
     void update_player_ELO(const Match &m, Player &winner, Player &loser) {
         winner.ranking = m.w_rank;
         loser.ranking = m.l_rank;
@@ -254,13 +272,15 @@ class Prediction {
         }
     }
 
-    void update_recent_form_metrics(Player &winner, Player &loser) {
+    void update_recent_form_metrics(const Match &m, Player &winner, Player &loser) {
         // recent wins 
         if (winner.recent_wins < 10)
             winner.recent_wins++;
         if (loser.recent_wins > 0)
             loser.recent_wins--;
-        // time since last match TODO
+        // last match
+        winner.last_match_date = m.date;
+        loser.last_match_date = m.date;
     }
 
     void train(string &train_file) {
@@ -304,8 +324,9 @@ class Prediction {
                 loser = players.find(loser_name);
             }
             
+            last_date = m->date;
             update_player_ELO(*m, winner->second, loser->second);
-            update_recent_form_metrics(winner->second, loser->second);
+            update_recent_form_metrics(*m, winner->second, loser->second);
             
             delete m;
         }
@@ -334,10 +355,11 @@ class Prediction {
     double multiplier(const Player &p) {
         double mult = 1.0;
         mult += 0.01*(p.recent_wins / 10); 
-        if (p.days_since_last_match > 60)
+        int days_since_last_match = find_days_since_last(p);
+        if (days_since_last_match > 60)
             mult = 0.6;
-        else if (p.days_since_last_match > 20)
-            mult -= 0.01*(p.days_since_last_match - 20);
+        else if (days_since_last_match > 20)
+            mult -= 0.01*(days_since_last_match - 20);
         return mult;
     }
 
@@ -354,29 +376,32 @@ class Prediction {
         switch (surface[0]) {
             case 'H':
             {
+                p1->second.elo_hard *= multiplier(p1->second);
+                p2->second.elo_hard *= multiplier(p2->second);
                 Player winner = (p1->second.elo_hard > p2->second.elo_hard) ? p1->second : p2->second;
                 Player loser = (winner.name == player1) ? p2->second : p1->second;
                 cout << "Winner : " << winner.name << endl;
-                print_visual(winner.name, loser.name, 
-                winner.elo_hard * multiplier(winner), loser.elo_hard * multiplier(loser));
+                print_visual(winner.name, loser.name, winner.elo_hard, loser.elo_hard);
             }
             break;
             case 'C':
             {
+                p1->second.elo_clay *= multiplier(p1->second);
+                p2->second.elo_clay *= multiplier(p2->second);
                 Player winner = (p1->second.elo_clay > p2->second.elo_clay) ? p1->second : p2->second;
                 Player loser = (winner.name == player1) ? p2->second : p1->second;
                 cout << "Winner : " << winner.name << endl;
-                print_visual(winner.name, loser.name, 
-                winner.elo_clay * multiplier(winner), loser.elo_clay * multiplier(loser));
+                print_visual(winner.name, loser.name, winner.elo_clay, loser.elo_clay);
             }
             break;
             case 'G':
             {
+                p1->second.elo_grass *= multiplier(p1->second);
+                p2->second.elo_grass *= multiplier(p2->second);
                 Player winner = (p1->second.elo_grass > p2->second.elo_grass) ? p1->second : p2->second;
                 Player loser = (winner.name == player1) ? p2->second : p1->second;
                 cout << "Winner : " << winner.name << endl;
-                print_visual(winner.name, loser.name, 
-                winner.elo_grass * multiplier(winner), loser.elo_grass * multiplier(loser));
+                print_visual(winner.name, loser.name, winner.elo_grass, loser.elo_grass);
             }
             break;
         }
@@ -416,6 +441,7 @@ int main(int argc, char *argv[]) {
     if (!p->validate_surface(surface)) {
         cout << "Invalide surface\n"
         << "The surface must be one of the following: Hard, Clay, Grass" << endl;
+        delete p;
         return 1;
     }
     p->train(training_file);

@@ -20,18 +20,18 @@ Parameters to use for prediction(Take ELO score from training and modify with be
 class Player {
     private:
     const std::string name;
+    std::string last_match_date;
     double elo_hard;
     double elo_clay;
     double elo_grass;
     int ranking;
     int recent_wins;
-    int days_since_last_match;
     
     friend class Prediction;
 
     public:
     Player(const std::string name_in, const int ranking_in)
-    : name(name_in), ranking(ranking_in), recent_wins(10), days_since_last_match(0) {
+    : name(name_in), ranking(ranking_in), recent_wins(10) {
         setELO(ranking_in);
     }
 
