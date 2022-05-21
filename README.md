@@ -2,7 +2,8 @@
 A command-line program that predicts the winner of an ATP tennis match given the names of the 2 players, the surface ("Hard", "Clay", "Grass"), and a csv file with match data.
 
 # Instructions:
-Compile the program with: 'make predict.exe'
+Compile the program with: ` make predict.exe `
+
 Run the program with the following command line arguments:
 - "Player 1 Name"
 - "Player 2 Name"
