@@ -14,12 +14,12 @@ class Prediction {
     private:
     string surface;
     string last_date;
-    const int max_update = 400;
+    const int max_update = 500;
     const double max_score_update = max_update * 0.3;
     const double max_time_update = max_update * 0.15;
-    const double max_rank_diff_update = max_update * 0.25;
-    const double max_ace_update = max_update * 0.1;
-    const double max_df_update = max_update * 0.1;
+    const double max_rank_diff_update = max_update * 0.3;
+    const double max_ace_update = max_update * 0.05;
+    const double max_df_update = max_update * 0.05;
     const double max_bp_update = max_update * 0.1;
 
     void parse_last_time(int &year, int &month, int &day) {
@@ -77,7 +77,7 @@ class Prediction {
             // If winner won set
             if (first > second) {
                 // If tiebreaker, assign max/10 points
-                if (score[set_ix + 2] == '6') {
+                if (second == 6) {
                     result += max_per_set / 10;
                 }
                 else {
@@ -107,12 +107,12 @@ class Prediction {
 
         // update time according to Bo5
         if (m.best_of == 5) {
-            // Lower cutoff: 90 mins and Upper cutoff: 270 mins
-            double change = (0.1*max_update) / 180;
+            // Lower cutoff: 100 mins and Upper cutoff: 270 mins
+            double change = (0.1*max_update) / 170;
             if (minutes > 270) 
                 time_update = 0;
             else {
-                while (minutes > 90) {
+                while (minutes > 100) {
                     --minutes;
                     time_update -= change;
                 }
@@ -120,9 +120,9 @@ class Prediction {
         }
         // update time according to Bo3
         else {
-            // Lower cutoff: 50 mins and Upper cutoff: 170 mins
-            double change = (0.1*max_update) / 120;
-            if (minutes > 170) 
+            // Lower cutoff: 50 mins and Upper cutoff: 150 mins
+            double change = (0.1*max_update) / 100;
+            if (minutes > 150) 
                 time_update = 0;
             else {
                 while (minutes > 50) {
@@ -135,10 +135,10 @@ class Prediction {
         // 30 ranking points is the cutoff for biggest upset
         int upset = winner.ranking - loser.ranking;
         if (upset > 0 && upset < 30)
-            rank_diff_update = (upset * 0.2 * max_update) / 30;
+            rank_diff_update = (upset * max_rank_diff_update) / 30;
         else if (upset < 0 && upset >= -8)  
             rank_diff_update *= 0.25;
-        else if (upset < -5)
+        else if (upset < -8)
             rank_diff_update = 0.1;
 
         return score_update + time_update + rank_diff_update;
@@ -331,35 +331,18 @@ class Prediction {
             delete m;
         }
     }
-
-    // Player predict(const string &player1, const string &player2, char surface) {
-    //     // Check if player names are valid
-    //     auto p1 = players.find(player1);
-    //     auto p2 = players.find(player2);
-    //     if (p1 == players.end() || p2 == players.end()) {
-    //         throw PlayerError();
-    //     }
-
-    //     switch (surface) {
-    //         case 'H':
-
-    //         case 'C':
-
-    //         case 'G':
-    //     }
-    // }
     
 
     // elo multiplier during prediction
     // accomodate for 1) recent form and 2) time since last match
     double multiplier(const Player &p) {
         double mult = 1.0;
-        mult += 0.01*(p.recent_wins / 10); 
+        mult += (0.02*(p.recent_wins / 10)); 
         int days_since_last_match = find_days_since_last(p);
-        if (days_since_last_match > 60)
+        if (days_since_last_match > 50)
             mult = 0.6;
         else if (days_since_last_match > 20)
-            mult -= 0.01*(days_since_last_match - 20);
+            mult -= (0.01*(days_since_last_match - 20));
         return mult;
     }
 
