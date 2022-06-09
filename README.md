@@ -7,13 +7,13 @@ Compile the program with: ` make predict.exe `
 Run the program with the following command line arguments:
 - "Player 1 Name"
 - "Player 2 Name"
-- Surface ("Hard", "Clay, "Grass")
+- Surface (Hard, Clay, Grass)
 - training_data.csv
 - Please reference the following example: 
 ` ./predict.exe "Novak Djokovic" "Rafael Nadal" Clay 2022_data.csv `
 
 # Important Notes:
-- The match dataset is not updated weekly (it's updated a few times each year), so the farther away a given, current tennis match is from the most recent matches in the dataset, the less accurate the prediction is expected to be.
+- The match dataset is not updated weekly (although I believe it is updated around once a month), so the further away a given, current tennis match is from the most recent matches in the dataset, the less accurate the prediction is expected to be.
 
 # How does it work?
 At a high level, each player is assigned an ELO that is initialized based on their world ranking and modified after each match a player plays.
