@@ -1,7 +1,6 @@
 #include <iostream>
 #include <fstream>
 #include <unordered_map>
-#include <ctime>
 #include <iomanip>
 #include "csv.h"
 #include "predict.h"
@@ -97,8 +96,8 @@ class Prediction {
         return result;
     }
 
+    // Score, Rank_Diff, Time are metrics shared by both players
     double equal_updates(const Match &m, const Player &winner, const Player &loser) {
-        // Score, Rank_Diff, Time
         double rank_diff_update = max_rank_diff_update, time_update = max_time_update;
         int num_sets = find_num_sets(m.score);
         int minutes = m.time;
@@ -145,7 +144,7 @@ class Prediction {
     }
 
     // Ace: Upper cutoff is 15 in Bo3, 20 in Bo5
-    // Upper onwards = full for winner, and 0 for loser
+    // Upper and greater aces = full for winner, and 0 for loser
     double ace_update(const Match &m, const Player &p, bool winner) {
         if (m.best_of == 5) {
             if (winner) {
@@ -182,7 +181,7 @@ class Prediction {
     }
 
     // DF: Upper cutoff is 12 in Bo3, 16 in Bo5
-    // Upper onwards = 0 for winner, and full value for loser 
+    // Upper and greater df = 0 for winner, and full value for loser 
     double df_update(const Match &m, const Player &p, bool winner) {
         if (m.best_of == 5) {
             if (winner) {
@@ -278,7 +277,8 @@ class Prediction {
             winner.recent_wins++;
         if (loser.recent_wins > 0)
             loser.recent_wins--;
-        // last match
+
+        // last match date
         winner.last_match_date = m.date;
         loser.last_match_date = m.date;
     }
@@ -338,6 +338,7 @@ class Prediction {
     double multiplier(const Player &p) {
         double mult = 1.0;
         mult += (0.02*(p.recent_wins / 10)); 
+
         int days_since_last_match = find_days_since_last(p);
         if (days_since_last_match > 50)
             mult = 0.6;
@@ -434,7 +435,9 @@ int main(int argc, char *argv[]) {
     }
     catch (PlayerError &pe) {
         cout << "Please enter a valid player name.\n" <<
-        "When entering player names in the command line, ensure they are inside quotes." << endl;
+        "When entering player names in the command line, ensure they are inside quotes.\n" 
+        << "If you believe you entered a valid player name, search the player in the"
+        << " match data CSV for the correct spelling." << endl;
     }
     
     delete p;
