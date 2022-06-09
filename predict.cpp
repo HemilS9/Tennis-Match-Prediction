@@ -131,14 +131,14 @@ class Prediction {
                 }
             }
         }
-        // Update rank_diff. The bigger the upset, the larger the value
-        // 30 ranking points is the cutoff for biggest upset
+        // Update rank_diff. The bigger the upset, the larger the value (30 is cutoff)
+        // Beating someone 20 ranking below you is cutoff on other end
         int upset = winner.ranking - loser.ranking;
         if (upset > 0 && upset < 30)
-            rank_diff_update = (upset * max_rank_diff_update) / 30;
-        else if (upset < 0 && upset >= -8)  
-            rank_diff_update *= 0.25;
-        else if (upset < -8)
+            rank_diff_update = (max_rank_diff_update/4) + ((upset * max_rank_diff_update) / 40);
+        else if (upset < 0 && upset >= -20)  
+            rank_diff_update = (0.3 + (upset * 0.01)) * max_rank_diff_update;
+        else if (upset < -20)
             rank_diff_update = 0.1;
 
         return score_update + time_update + rank_diff_update;
