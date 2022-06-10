@@ -1,5 +1,5 @@
 # Tennis-Match-Prediction
-A command-line program that predicts the winner of an ATP tennis match in **under 1 second** given the names of the 2 players, the surface (Hard, Clay, Grass), and a csv file with match data. 
+A command-line program that predicts the winner of an ATP tennis match with roughly **70% accuracy** and in **under 1 second**, given the names of the 2 players, the surface (Hard, Clay, Grass), and a csv file with match data. 
 
 # Instructions:
 Compile the program with: ` make predict.exe `
