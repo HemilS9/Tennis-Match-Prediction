@@ -1,10 +1,6 @@
 # Tennis-Match-Prediction
 A command-line program that predicts the winner of an ATP tennis match in **under 1 second** given the names of the 2 players, the surface (Hard, Clay, Grass), and a csv file with match data. 
 
-# Important Notes:
-- The match dataset is not updated weekly (although I believe it is updated around once a month), so the further away a given, current tennis match is from the most recent matches in the dataset, the less accurate the prediction is expected to be.
-- For best results, use the "past_year_data.csv" file. It includes all matches exactly 1 year from the most recent tournament updated by the source of the dataset
-
 # Instructions:
 Compile the program with: ` make predict.exe `
 
@@ -15,6 +11,10 @@ Run the program with the following command line arguments:
 - match_data.csv
 - Please reference the following example: 
 ` ./predict.exe "Novak Djokovic" "Rafael Nadal" Clay 2022_data.csv `
+
+# Important Notes:
+- The match dataset is not updated weekly (although I believe it is updated around once a month), so the further away a given, current tennis match is from the most recent matches in the dataset, the less accurate the prediction is expected to be.
+- For best results, use the "past_year_data.csv" file. It includes all matches exactly 1 year from the most recent tournament updated by the source of the dataset
 
 # How does it work?
 At a high level, each player is assigned an ELO that is initialized based on their world ranking and modified after each match a player plays.
