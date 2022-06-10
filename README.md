@@ -1,8 +1,5 @@
 # Tennis-Match-Prediction
-A command-line program that predicts the winner of an ATP tennis match in **under 1 second** given 
-1) the names of the 2 players 
-2) the surface (Hard, Clay, Grass), and 
-3) a csv file with match data. 
+A command-line program that predicts the winner of an ATP tennis match in **under 1 second** given the names of the 2 players, the surface (Hard, Clay, Grass), and a csv file with match data. 
 
 # Important Notes:
 - The match dataset is not updated weekly (although I believe it is updated around once a month), so the further away a given, current tennis match is from the most recent matches in the dataset, the less accurate the prediction is expected to be.
