@@ -1,5 +1,5 @@
 # Tennis-Match-Prediction
-A command-line program that predicts the winner of an ATP tennis match in **under 1 second** given the names of the 2 players, the surface (Hard, Clay, Grass), and a csv file with match data. 
+A command-line program that predicts the winner of an ATP tennis match with roughly **70% accuracy** and in **under 1 second**, given the names of the 2 players, the surface (Hard, Clay, Grass), and a csv file with match data. 
 
 # Instructions:
 Compile the program with: ` make predict.exe `
@@ -32,7 +32,8 @@ During the prediction stage, a recent form multiplier is added to players' elo s
 
 # Conclusion
 Like most sports, tennis matches do not have definitive answers for the winners of matches (for example, Novak Djokovic and Rafael Nadal have a 30-29 head to head).
-Rising youngsters, unexpected injuries, occasional upsets, and more, all cause lots of difficulty in predicting winners!
+Rising youngsters, unexpected injuries, occasional upsets, and more, all cause difficulty in predicting winners!
+
 Because of this, I decided to go with an ELO based prediction method that utilizes various metrics to update players after each match played.
 
 # Credits:
