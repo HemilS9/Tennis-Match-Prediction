@@ -28,13 +28,13 @@ The metrics include:
 - Number of double faults each player made
 - Break point conversion of each player
 
-During the prediction stage, a recent form multiplier is added to players' elo score before determining the winner.
+During the prediction stage, a recent form multiplier is applied to players' elo score before determining the winner.
 
 # Conclusion
-Like most sports, tennis matches do not have definitive answers for the winners of matches (for example, Novak Djokovic and Rafael Nadal have a 30-29 head to head).
-Rising youngsters, unexpected injuries, occasional upsets, and more, all cause difficulty in predicting winners!
+Like most sports, tennis matches do not have definitive answers for the winners of matches (for example, at the time this project was created, Novak Djokovic and Rafael Nadal have a 30-29 head to head).
+Rising youngsters, unexpected injuries, the occasional upset, and more, all contribute to uncertainty in predicting winners!
 
-Because of this, I decided to go with an ELO based prediction method that utilizes various metrics to update players after each match played.
+Because of this, I decided to implement an ELO based prediction method that utilizes various metrics to update players after each match played.
 
 # Credits:
 - The CSV parser used in this project is by Ben Strasser: https://github.com/ben-strasser/fast-cpp-csv-parser
