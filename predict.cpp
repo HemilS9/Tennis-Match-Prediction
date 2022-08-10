@@ -15,11 +15,11 @@ class Prediction {
     string last_date;
     const int max_update = 500;
     const double max_score_update = max_update * 0.3;
-    const double max_time_update = max_update * 0.15;
+    const double max_time_update = max_update * 0.2;
     const double max_rank_diff_update = max_update * 0.3;
     const double max_ace_update = max_update * 0.05;
     const double max_df_update = max_update * 0.05;
-    const double max_bp_update = max_update * 0.1;
+    const double max_bp_update = max_update * 0.05;
 
     void parse_last_time(int &year, int &month, int &day) {
         year = stoi(last_date.substr(0, 4));
@@ -37,6 +37,7 @@ class Prediction {
         int p_year, p_month, p_day, year, month, day;
         parse_time(p, p_year, p_month, p_day);
         parse_last_time(year, month, day);
+
         int result = 0;
         result += (year - p_year) * 365;
         result += (month - p_month) * 30;
@@ -47,9 +48,8 @@ class Prediction {
     int find_num_sets(const string &score) {
         int num = 0;
         for (auto c : score) {
-            if (c == '-') {
+            if (c == '-')
                 ++num;
-            }
         }
         return num;
     }
@@ -130,6 +130,7 @@ class Prediction {
                 }
             }
         }
+        
         // Update rank_diff. The bigger the upset, the larger the value (30 is cutoff)
         // Beating someone 20 ranking below you is cutoff on other end
         int upset = winner.ranking - loser.ranking;
@@ -144,75 +145,67 @@ class Prediction {
     }
 
     // Ace: Upper cutoff is 15 in Bo3, 20 in Bo5
-    // Upper and greater aces = full for winner, and 0 for loser
+    // Aces >= upper: full for winner, and 0 for loser
     double ace_update(const Match &m, const Player &p, bool winner) {
         if (m.best_of == 5) {
             if (winner) {
                 if (m.w_ace < 20) 
                     return (m.w_ace * max_ace_update) / 20;
-                else {
-                    return max_ace_update;
-                }
+                
+                return max_ace_update;
             }
             else {
-                if (m.l_ace >= 20) 
-                    return 0;
-                else {
+                if (m.l_ace < 20) 
                     return max_ace_update - ((m.l_ace * max_ace_update) / 20);
-                }
+                
+                return 0;
             }
         }
         else {
             if (winner) {
                 if (m.w_ace < 15) 
                     return (m.w_ace * max_ace_update) / 15;
-                else {
-                    return max_ace_update;
-                }
+                
+                return max_ace_update;
             }
             else {
-                if (m.l_ace >= 15) 
-                    return 0;
-                else {
+                if (m.l_ace < 15) 
                     return max_ace_update - ((m.l_ace * max_ace_update) / 15);
-                }
+                
+                return 0;
             }
         }
     }
 
     // DF: Upper cutoff is 12 in Bo3, 16 in Bo5
-    // Upper and greater df = 0 for winner, and full value for loser 
+    // Df >= upper: 0 for winner, and full value for loser 
     double df_update(const Match &m, const Player &p, bool winner) {
         if (m.best_of == 5) {
             if (winner) {
                 if (m.w_df < 16) 
                     return max_df_update - ((m.w_df * max_df_update) / 16);
-                else {
-                    return 0;
-                }
+                
+                return 0;
             }
             else {
-                if (m.l_df >= 16) 
-                    return max_df_update;
-                else {
+                if (m.l_df < 16) 
                     return (m.l_df * max_df_update) / 16;
-                }
+                
+                return max_df_update;
             }
         }
         else {
             if (winner) {
                 if (m.w_df < 12) 
                     return max_df_update - ((m.w_df * max_df_update) / 12);
-                else {
-                    return 0;
-                }
+                
+                return 0;
             }
             else {
-                if (m.l_df >= 12) 
-                    return max_df_update;
-                else {
+                if (m.l_df < 12) 
                     return (m.l_df * max_df_update) / 12;
-                }
+                
+                return max_df_update;
             }
         }
     }
