@@ -308,12 +308,12 @@ class Prediction {
             auto loser = players.find(loser_name);
             if (winner == players.end()) {
                 Player p1(winner_name, w_rank);
-                players.insert({winner_name, p1});
+                players.emplace(winner_name, p1);
                 winner = players.find(winner_name);
             }
             if (loser == players.end()) {
                 Player p2(loser_name, l_rank);
-                players.insert({loser_name, p2});
+                players.emplace(loser_name, p2);
                 loser = players.find(loser_name);
             }
             
@@ -330,7 +330,7 @@ class Prediction {
     // accomodate for 1) recent form and 2) time since last match
     double multiplier(const Player &p) {
         double mult = 1.0;
-        mult += (0.02*(p.recent_wins / 10)); 
+        mult += (0.025*(p.recent_wins / 10)); 
 
         int days_since_last_match = find_days_since_last(p);
         if (days_since_last_match > 50)
@@ -427,7 +427,7 @@ int main(int argc, char *argv[]) {
         p->print_prediction(player1, player2, surface);
     }
     catch (PlayerError &pe) {
-        cout << "Please enter a valid player name.\n" <<
+        cout << "One of the entered player names is incorrect.\n" <<
         "When entering player names in the command line, ensure they are inside quotes.\n" 
         << "If you believe you entered a valid player name, search the player in the"
         << " match data CSV for the correct spelling." << endl;
