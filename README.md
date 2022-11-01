@@ -13,8 +13,8 @@ Run the program with the following command line arguments:
 ` ./predict.exe "Novak Djokovic" "Rafael Nadal" Clay 2022_data.csv `
 
 # Important Notes:
-- The match dataset is not updated weekly (although I believe it is updated around once a month), so the further away a given, current tennis match is from the most recent matches in the dataset, the less accurate the prediction is expected to be.
-- For best results, use the ` past_year_data.csv ` file. It includes all matches exactly 1 year from the most recent tournament updated by the source of the dataset
+- The further away a given, current tennis match is from the most recent matches in the dataset, the less accurate the prediction is expected to be.
+- For best results, use the ` past_year_data.csv ` file. It includes all matches exactly 1 year from the most recent tournament updated by the source of the dataset, and it represents a good balance between having enough data and having recent data. 
 
 # How does it work?
 At a high level, each player is assigned an ELO that is initialized based on their world ranking and modified after each match a player plays.
