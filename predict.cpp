@@ -5,9 +5,11 @@
 #include "csv.h"
 #include "predict.h"
 
-using namespace std;
+using std::vector;
+using std::cout; using std::endl;
 
 class PlayerError {};
+
 
 class Prediction {
     private:
@@ -210,6 +212,32 @@ class Prediction {
         }
     }
 
+    void update_recent_form_metrics(const Match &m, Player &winner, Player &loser) {
+        // recent wins 
+        if (winner.recent_wins < 10)
+            winner.recent_wins++;
+        if (loser.recent_wins > 0)
+            loser.recent_wins--;
+
+        // last match date
+        winner.last_match_date = m.date;
+        loser.last_match_date = m.date;
+    }
+
+    // elo multiplier during prediction
+    // accomodate for 1) recent form and 2) time since last match
+    double multiplier(const Player &p) {
+        double mult = 1.0;
+        mult += (0.025*(p.recent_wins / 10)); 
+
+        int days_since_last_match = find_days_since_last(p);
+        if (days_since_last_match > 50)
+            mult = 0.6;
+        else if (days_since_last_match > 20)
+            mult -= (0.01*(days_since_last_match - 20));
+        return mult;
+    }
+
     // Winner_name (%) ---------|------ Loser_name (%)
     // 20 dashes in total, so round to nearest 5%
     void print_visual(const string &w_name, const string &l_name, double w_elo, double l_elo) {
@@ -232,7 +260,7 @@ class Prediction {
 
     public:
 
-    unordered_map<string, Player> players; // Key: player name | Value: Player info
+    std::unordered_map<string, Player> players; // Key: player name | Value: Player info
 
     void update_player_ELO(const Match &m, Player &winner, Player &loser) {
         winner.ranking = m.w_rank;
@@ -262,18 +290,6 @@ class Prediction {
                 loser.elo_grass -= loser_update;
                 break;
         }
-    }
-
-    void update_recent_form_metrics(const Match &m, Player &winner, Player &loser) {
-        // recent wins 
-        if (winner.recent_wins < 10)
-            winner.recent_wins++;
-        if (loser.recent_wins > 0)
-            loser.recent_wins--;
-
-        // last match date
-        winner.last_match_date = m.date;
-        loser.last_match_date = m.date;
     }
 
     void train(string &train_file) {
@@ -324,24 +340,9 @@ class Prediction {
             delete m;
         }
     }
-    
-
-    // elo multiplier during prediction
-    // accomodate for 1) recent form and 2) time since last match
-    double multiplier(const Player &p) {
-        double mult = 1.0;
-        mult += (0.025*(p.recent_wins / 10)); 
-
-        int days_since_last_match = find_days_since_last(p);
-        if (days_since_last_match > 50)
-            mult = 0.6;
-        else if (days_since_last_match > 20)
-            mult -= (0.01*(days_since_last_match - 20));
-        return mult;
-    }
 
 
-    void print_prediction(const string player1, const string player2, const string surface) {
+    void print_prediction(const string &player1, const string &player2, const string &surface) {
         // Check if player names are valid
         auto p1 = players.find(player1);
         auto p2 = players.find(player2);
@@ -401,7 +402,7 @@ argv[3] = surface ("Hard", "Clay", "Grass")
 argv[4] = training_data.csv
 */
 int main(int argc, char *argv[]) {
-    std::cout << std::setprecision(3);
+    cout << std::setprecision(3);
     if (argc != 5) {
         cout << "Please enter the following information in the order below:\n" <<
         "\"Player1\" \"Player2\" Surface training_file.csv\n"

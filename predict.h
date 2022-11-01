@@ -1,9 +1,12 @@
 #include <string>
+using std::string;
+
+const double MAX_INITIAL_RANKING = 100000;
 
 class Player {
     private:
-    const std::string name;
-    std::string last_match_date;
+    const string name;
+    string last_match_date;
     double elo_hard;
     double elo_clay;
     double elo_grass;
@@ -13,13 +16,13 @@ class Player {
     friend class Prediction;
 
     public:
-    Player(const std::string name_in, const int ranking_in)
+    Player(const string name_in, const int ranking_in)
     : name(name_in), ranking(ranking_in), recent_wins(10) {
         setELO(ranking_in);
     }
 
     void setELO(const int player_ranking) {
-        double result = 100000;
+        double result = MAX_INITIAL_RANKING;
         result -= (ranking*100);
         elo_hard = result;
         elo_clay = result;
@@ -29,11 +32,11 @@ class Player {
 
 class Match {
     private:
-    std::string surface;
-    std::string winner_name;
-    std::string loser_name;
-    std::string score;
-    std::string date;
+    string surface;
+    string winner_name;
+    string loser_name;
+    string score;
+    string date;
     double w_bp_conversion = 0;
     double l_bp_conversion = 0;
     int time;
@@ -46,8 +49,8 @@ class Match {
 
     public:
     // surface, w_name, l_name, score, date, time, w_ace, w_df, l_ace, l_df, w_rank, l_rank, best_of
-    Match(std::string s_in, std::string w_name_in, std::string l_name_in, std::string score_in,
-    std::string date_in, int t_in, int w_ace_in, int w_df_in, int l_ace_in, int l_df_in,
+    Match(string s_in, string w_name_in, string l_name_in, string score_in,
+    string date_in, int t_in, int w_ace_in, int w_df_in, int l_ace_in, int l_df_in,
     int w_rank_in, int l_rank_in, uint8_t bo, int w_bp_saved_in, double w_bp_faced_in, 
     int l_bp_saved_in, double l_bp_faced_in)
     : surface(s_in), winner_name(w_name_in), loser_name(l_name_in), score(score_in), date(date_in),
