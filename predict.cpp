@@ -6,7 +6,7 @@
 #include "predict.h"
 
 using std::vector;
-using std::cout; using std::endl;
+using std::cout, std::endl;
 
 class PlayerError {};
 
