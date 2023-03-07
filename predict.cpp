@@ -314,6 +314,9 @@ class Prediction {
             if (score.find("RET") != std::string::npos) {
                 continue;
             }
+            if (!w_rank || !l_rank) {
+                continue;
+            }
             
             // instantiate match data from csv data
             Match *m = new Match(surface, winner_name, loser_name, score, date, time, w_ace, w_df,
