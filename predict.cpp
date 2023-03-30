@@ -273,7 +273,7 @@ class Prediction {
         winner_update = first_update + ace_update(m, winner, true) + df_update(m, winner, true) 
                         + (m.w_bp_conversion * max_bp_update);
         loser_update = first_update + ace_update(m, loser, false) + df_update(m, loser, false) 
-                        + (max_update - (m.l_bp_conversion * max_bp_update));
+                        + (max_bp_update - (m.l_bp_conversion * max_bp_update));
 
         switch(m.surface[0]) {
             case 'H':
