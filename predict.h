@@ -17,7 +17,7 @@ class Player {
 
     public:
     Player(const string name_in, const int ranking_in)
-    : name(name_in), ranking(ranking_in), recent_wins(10) {
+    : name(name_in), ranking(ranking_in), recent_wins(5) {
         setELO(ranking_in);
     }
 
