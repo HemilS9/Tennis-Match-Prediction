@@ -1,3 +1,3 @@
-Number of correct predictions: 70
+Number of correct predictions: 71
 Number of total predictions: 126
-Accuracy: 55.55555555555556%
+Accuracy: 56.34920634920635%

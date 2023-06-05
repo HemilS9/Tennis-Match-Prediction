@@ -15,7 +15,7 @@ class Prediction {
     private:
     string surface;
     string last_date;
-    const int max_update = 500;
+    const int max_update = 800;
     const double max_score_update = max_update * 0.3;
     const double max_time_update = max_update * 0.2;
     const double max_rank_diff_update = max_update * 0.3;
