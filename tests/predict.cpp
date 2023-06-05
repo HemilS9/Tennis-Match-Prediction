@@ -2,8 +2,8 @@
 #include <fstream>
 #include <unordered_map>
 #include <iomanip>
-#include "../../csv.h"
-#include "../../predict.h"
+#include "../csv.h"
+#include "../predict.h"
 
 using std::vector;
 using std::cout, std::endl;
