@@ -1,3 +1,4 @@
-Number of correct predictions: 62
+Number of correct predictions: 59
 Number of total predictions: 95
-Accuracy: 65.26315789473684%
+Accuracy: 62.105%
+Accuracy if always predicting the higher seed: 54.737%
